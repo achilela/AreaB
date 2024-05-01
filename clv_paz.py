@@ -1,22 +1,3 @@
-import importlib
-
-def is_library_installed(library):
-    try:
-        importlib.import_module(library)
-        return True
-    except ImportError:
-        return False
-
-# List of required libraries
-required_libraries = ['streamlit', 'pandas', 'openpyxl', 'pygwalker']
-
-# Check if required libraries are installed
-missing_libraries = [library for library in required_libraries if not is_library_installed(library)]
-
-if missing_libraries:
-    st.error(f"The following libraries are missing: {', '.join(missing_libraries)}. Please install them and restart the app.")
-    st.stop()
-
 import streamlit as st
 import pandas as pd
 import time
