@@ -17,7 +17,7 @@ The Methods Engineering App is designed to analyze and filter Inspection Plant M
 1. Run the Streamlit webapp by executing the Python script.
 2. Upload an Excel file containing topsides plant maintenance data using the file uploader.
 3. The App will perform data cleansing tasks automatically.
-4. Select the desired columns for analysis using the multiselect dropdown menu.
+4. Select the desired columns for analysis using the multiselect dropdown menus.
 5. Apply filters to the selected columns using the corresponding dropdown menus.
 6. The webapp will display the filtered data as summary descriptive statistics.
 7. Explore the summary statistics for numeric columns and unique values and counts for categorical columns.
@@ -27,6 +27,7 @@ The Methods Engineering App is designed to analyze and filter Inspection Plant M
 - Python 3.x
 - streamlit
 - pandas
+- pygwalker
 
 ## Data Cleansing Steps
 
@@ -50,7 +51,7 @@ The Methods Engineering App is designed to analyze and filter Inspection Plant M
 
 ## Future Work
 
-- Uploaded raw SAP data without table format.
+- Upload raw SAP data without table format.
 - Perform data cleansing techniques to transform the raw data into table format and defining the column naming headers.
 - Attempt to leverage the .groupby() method to replicate the Pivot Tables functionalities.
 - Implement graph functionalities for each filtered/sorted feature.
