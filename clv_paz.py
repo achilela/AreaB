@@ -1,3 +1,20 @@
+import importlib
+import subprocess
+import sys
+
+def install_libraries(libraries):
+    for library in libraries:
+        try:
+            importlib.import_module(library)
+        except ImportError:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', library])
+
+# List of required libraries
+required_libraries = ['streamlit', 'pandas', 'openpyxl']
+
+# Install missing libraries
+install_libraries(required_libraries)
+
 import streamlit as st
 import pandas as pd
 import time
@@ -35,7 +52,32 @@ if uploaded_file is not None:
         time.sleep(0.01)
         my_bar.progress(percent_complete + 1, text=progress_text)
 
-    # Rest of the code...
+    # Load the Excel file into a BytesIO object
+    excel_data = BytesIO(uploaded_file.getvalue())
+
+    # Load the workbook and select the "Data Base" sheet
+    workbook = load_workbook(excel_data)
+    sheet = workbook["Data Base"]
+
+    # Delete the first column (A) and the last three columns (S, T, U)
+    sheet.delete_cols(1, 1)
+    sheet.delete_cols(sheet.max_column - 2, 3)
+
+    # Delete the first 4 rows
+    sheet.delete_rows(1, 4)
+
+    # Add a new column with the header "Today's Date" and insert the TODAY() formula
+    sheet.cell(row=1, column=sheet.max_column + 1, value="Today's Date")
+    for row in range(2, sheet.max_row + 1):
+        sheet.cell(row=row, column=sheet.max_column, value=date.today())
+
+    # Convert the sheet to a table
+    table_name = "MainTable"
+    table_range = f"A1:{chr(ord('A') + sheet.max_column - 1)}{sheet.max_row}"
+    table = Table(displayName=table_name, ref=table_range)
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
+    table.tableStyleInfo = style
+    sheet.add_table(table)
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
