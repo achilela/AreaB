@@ -3,6 +3,7 @@ import pandas as pd
 import time
 from io import BytesIO
 from openpyxl import load_workbook
+from openpyxl.worksheet.table import Table, TableStyleInfo
 from datetime import date
 
 # Set page title
@@ -55,8 +56,11 @@ if uploaded_file is not None:
 
     # Convert the sheet to a table
     table_name = "MainTable"
-    table_range = sheet.dimensions
-    sheet.tables.add(table_name, sheet.dimensions)
+    table_range = f"A1:{chr(ord('A') + sheet.max_column - 1)}{sheet.max_row}"
+    table = Table(displayName=table_name, ref=table_range)
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
+    table.tableStyleInfo = style
+    sheet.add_table(table)
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
