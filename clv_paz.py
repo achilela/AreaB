@@ -1,20 +1,3 @@
-import subprocess
-import sys
-import importlib
- 
-def install_package(package):
-    try:
-        importlib.import_module(package)
-    except ImportError:
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
- 
-# List of required packages
-required_packages = ['streamlit', 'pandas', 'xlrd', 'xlsxwriter']
- 
-# Install missing packages
-for package in required_packages:
-    install_package(package)
- 
 import streamlit as st
 import pandas as pd
 import time
