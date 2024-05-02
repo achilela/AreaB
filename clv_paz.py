@@ -2,7 +2,7 @@ import sys
 import subprocess
 
 def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip3", "install", package])
+    subprocess.check_call([sys.executable, "pip3", "install", package])
 
 # Usage
 install("xlrd")
