@@ -1,4 +1,12 @@
-pip install xlrd
+import sys
+import subprocess
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# Usage
+install("xlrd")
+
 import streamlit as st
 import pandas as pd
 import time
