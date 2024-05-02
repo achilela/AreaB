@@ -69,7 +69,7 @@ if uploaded_file is not None:
     # Add a new column with the header "Today's Date" and insert the TODAY() formula
     data[0].append("Today's Date")
     for row in data[1:]:
-row.append(date.today())
+        row.append(date.today())
  
     # Create a new workbook and sheet using xlsxwriter
     output = BytesIO()
