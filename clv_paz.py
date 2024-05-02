@@ -1,20 +1,3 @@
-import importlib
-import subprocess
-import sys
-
-def install_libraries(libraries):
-    for library in libraries:
-        try:
-            importlib.import_module(library)
-        except ImportError:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', library])
-
-# List of required libraries
-required_libraries = ['streamlit', 'pandas', 'openpyxl']
-
-# Install missing libraries
-install_libraries(required_libraries)
-
 import streamlit as st
 import pandas as pd
 import time
