@@ -83,7 +83,7 @@ if uploaded_file is not None:
  
     # Save the new workbook
     new_workbook.close()
-output.seek(0)
+    output.seek(0)
  
     # Read the modified Excel file into a pandas DataFrame
     df = pd.read_excel(output)
