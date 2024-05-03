@@ -69,6 +69,7 @@ if uploaded_file is not None:
         df["Backlog"] = np.nan
     if "Due Date" in df.columns:
         backlog_days = (today_date - df["Due Date"]).dt.days
+        backlog_days = backlog_days.astype(int)
         df.loc[(backlog_days > 28), "Backlog"] = backlog_days[backlog_days > 28]
         df.loc[(df["Backlog"] > 365), "Backlog"] = df.loc[(df["Backlog"] > 365), "Backlog"] / 365
         df.loc[(df["Backlog"] <= 365) & (df["Backlog"] > 30), "Backlog"] = df.loc[(df["Backlog"] <= 365) & (df["Backlog"] > 30), "Backlog"] / 30
