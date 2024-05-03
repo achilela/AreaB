@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import time
 from io import BytesIO
-from xlrd import open_workbook
-from xlsxwriter import Workbook
+from openpyxl import load_workbook
+from openpyxl.worksheet.table import Table, TableStyleInfo
 from datetime import date
 
 # Set page title
@@ -39,33 +39,32 @@ if uploaded_file is not None:
     excel_data = BytesIO(uploaded_file.getvalue())
 
     # Load the workbook and select the "Data Base" sheet
-    workbook = open_workbook(file_contents=excel_data.getvalue())
-    sheet = workbook.sheet_by_name("Data Base")
+    workbook = load_workbook(excel_data)
+    sheet = workbook["Data Base"]
 
     # Delete the first column (A) and the last three columns (S, T, U)
-    data = [sheet.row_values(r) for r in range(sheet.nrows)]
-    data = [[row[1]] + row[4:-3] for row in data]
+    sheet.delete_cols(1, 1)
+    sheet.delete_cols(sheet.max_column - 2, 3)
 
     # Delete the first 4 rows
-    data = data[4:]
+    sheet.delete_rows(1, 4)
 
     # Add a new column with the header "Today's Date" and insert the TODAY() formula
-    data[0].append("Today's Date")
-    for row in data[1:]:
-        row.append(date.today())
+    sheet.cell(row=1, column=sheet.max_column + 1, value="Today's Date")
+    for row in range(2, sheet.max_row + 1):
+        sheet.cell(row=row, column=sheet.max_column, value=date.today())
 
-    # Create a new workbook and sheet using xlsxwriter
+    # Convert the sheet to a table
+    table_name = "MainTable"
+    table_range = f"A1:{chr(ord('A') + sheet.max_column - 1)}{sheet.max_row}"
+    table = Table(displayName=table_name, ref=table_range)
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
+    table.tableStyleInfo = style
+    sheet.add_table(table)
+
+    # Save the modified workbook to a BytesIO object
     output = BytesIO()
-    new_workbook = Workbook(output, {'in_memory': True})
-    new_sheet = new_workbook.add_worksheet()
-
-    # Write the data to the new sheet
-    for r, row in enumerate(data):
-        for c, value in enumerate(row):
-            new_sheet.write(r, c, value)
-
-    # Save the new workbook
-    new_workbook.close()
+    workbook.save(output)
     output.seek(0)
 
     # Read the modified Excel file into a pandas DataFrame
