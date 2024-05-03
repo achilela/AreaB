@@ -64,6 +64,16 @@ if uploaded_file is not None:
                                                np.where(today_date - df["Due Date"] > pd.Timedelta(days=182), "6 Months < x <1 Yrs",
                                                         "< 6 Months"))))
 
+    # Calculate backlog
+    if "Backlog" not in df.columns:
+        df["Backlog"] = np.nan
+    if "Due Date" in df.columns:
+        backlog_days = (today_date - df["Due Date"]).dt.days
+        df.loc[(backlog_days > 28), "Backlog"] = backlog_days[backlog_days > 28]
+        df.loc[(df["Backlog"] > 365), "Backlog"] = df.loc[(df["Backlog"] > 365), "Backlog"] / 365
+        df.loc[(df["Backlog"] <= 365) & (df["Backlog"] > 30), "Backlog"] = df.loc[(df["Backlog"] <= 365) & (df["Backlog"] > 30), "Backlog"] / 30
+        df.loc[(df["Backlog"] <= 30), "Backlog"] = df.loc[(df["Backlog"] <= 30), "Backlog"]
+
     # Check if the Excel file is already in table form
     if df.columns.nlevels == 1:
         # Remove rows with missing data
