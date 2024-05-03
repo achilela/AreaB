@@ -22,8 +22,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# File upload in the sidebar
-uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
+# File upload
+uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     # Show progress bar during file upload
