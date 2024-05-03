@@ -19,6 +19,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# =IF($V$1-L2>1095,"> 3 Yrs",IF($V$1-L2>730,"2 Yrs < x <3 Yrs",IF($V$1-L2>365,"1 Yrs < x <2 Yrs",IF($V$1-L2>182,"6 Months < x <1 Yrs","< 6 Months"))))
+
 # Add a sidebar
 sidebar = st.sidebar
 
