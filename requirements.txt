@@ -3,4 +3,3 @@ streamlit
 pygwalker
 xlrd
 dill
-pywin32
