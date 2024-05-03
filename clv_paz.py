@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 import time
 from io import BytesIO
-from openpyxl import load_workbook
-from openpyxl.worksheet.table import Table, TableStyleInfo
+import xlrd
 from datetime import date
 
 st.set_page_config(page_title="Topsides Plant Maintenance Data Analysis")
@@ -32,29 +31,22 @@ if uploaded_file is not None:
         my_bar.progress(percent_complete + 1, text=progress_text)
 
     excel_data = BytesIO(uploaded_file.getvalue())
-    workbook = load_workbook(excel_data)
-    sheet = workbook["Data Base"]
+    workbook = xlrd.open_workbook(file_contents=excel_data.read())
+    sheet = workbook.sheet_by_name("Data Base")
 
-    sheet.delete_cols(1, 1)
-    sheet.delete_cols(sheet.max_column - 2, 3)
-    sheet.delete_rows(1, 4)
+    data = []
+    for row in range(4, sheet.nrows):
+        row_data = []
+        for col in range(1, sheet.ncols - 2):
+            value = sheet.cell_value(row, col)
+            row_data.append(value)
+        row_data.append(date.today())
+        data.append(row_data)
 
-    sheet.cell(row=1, column=sheet.max_column + 1, value="Today's Date")
-    for row in range(2, sheet.max_row + 1):
-        sheet.cell(row=row, column=sheet.max_column, value=date.today())
+    columns = [sheet.cell_value(0, col) for col in range(1, sheet.ncols - 2)]
+    columns.append("Today's Date")
 
-    table_name = "MainTable"
-    table_range = f"A1:{chr(ord('A') + sheet.max_column - 1)}{sheet.max_row}"
-    table = Table(displayName=table_name, ref=table_range)
-    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
-    table.tableStyleInfo = style
-    sheet.add_table(table)
-
-    output = BytesIO()
-    workbook.save(output)
-    output.seek(0)
-
-    df = pd.read_excel(output)
+    df = pd.DataFrame(data, columns=columns)
 
     if df.columns.nlevels == 1:
         df.dropna(how='all', inplace=True)
