@@ -3,17 +3,17 @@ import pandas as pd
 import time
 
 # Set page title
-st.set_page_config(page_title="Area B - Methods Engineering Data Analysis")
+st.set_page_config(page_title="Area B - Methods Engineering")
 
 # Add a title and description
 st.markdown(
     """
     <h1 style='text-align: center; font-size: 36px; color: #2F80ED;'>
-        Area B - Methods Engineering Data Analysis
+        Area B - Methods Engineering 
     </h1>
 
     <p style='text-align: center; font-size: 18px;'>
-        Upload the excel file raw data from SAP reports.
+        Upload SAP raw data file reports for analysis and visualizations.
     </p>
     """,
     unsafe_allow_html=True
