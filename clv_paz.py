@@ -30,8 +30,8 @@ def display_filtered_data(filtered_df):
     st.write(filtered_df.style.format({"Today Date": lambda x: f'=TODAY()'}))
     
     # Use pygwalker for data visualization
-    fig = pyg.plot(filtered_df)
-    st.pyplot(fig)
+    #fig = pyg.plot(filtered_df)
+    #st.pyplot(fig)
 
 def main():
     st.title("Excel Data Analysis App")
