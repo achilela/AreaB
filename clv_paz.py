@@ -11,7 +11,7 @@ st.markdown(
     <h1 style='text-align: center; font-size: 36px; color: #2F80ED;'>
         Area B - Methods Engineering Data Analysis
     </h1>
-    
+
     <p style='text-align: center; font-size: 18px;'>
         Upload the excel file raw data from SAP reports.
     </p>
@@ -19,8 +19,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# File upload
-uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
+# Add a sidebar
+sidebar = st.sidebar
+
+# File upload in the sidebar
+uploaded_file = sidebar.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     # Show progress bar during file upload
@@ -33,6 +36,9 @@ if uploaded_file is not None:
 
     # Read the Excel file into a pandas DataFrame
     df = pd.read_excel(uploaded_file)
+
+    # Add a new column 'Today's Date' with today's date
+    df['Today\'s Date'] = pd.Timestamp.now().date()
 
     # Check if the Excel file is already in table form
     if df.columns.nlevels == 1:
