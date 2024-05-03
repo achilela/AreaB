@@ -46,13 +46,13 @@ if uploaded_file is not None:
     if "Order" in df.columns:
         df["Order"] = df["Order"].astype(int)
     if "Last Insp/" in df.columns:
-        df["Last Insp/"] = pd.to_datetime(df["Last Insp/"]).dt.date
+        df["Last Insp/"] = pd.to_datetime(df["Last Insp/"]).date()
     if "Next Insp/" in df.columns:
-        df["Next Insp/"] = pd.to_datetime(df["Next Insp/"]).dt.date
+        df["Next Insp/"] = pd.to_datetime(df["Next Insp/"]).date()
     if "Due Date" in df.columns:
-        df["Due Date"] = pd.to_datetime(df["Due Date"], errors='coerce').dt.date
+        df["Due Date"] = pd.to_datetime(df["Due Date"], errors='coerce').date()
     if "Compl Date" in df.columns:
-        df["Compl Date"] = pd.to_datetime(df["Compl Date"]).dt.date
+        df["Compl Date"] = pd.to_datetime(df["Compl Date"]).date()
     if "Year" in df.columns:
         df["Year"] = df["Year"].astype(str).str[:4]
 
@@ -68,7 +68,7 @@ if uploaded_file is not None:
     if "Backlog" not in df.columns:
         df["Backlog"] = np.nan
     if "Due Date" in df.columns:
-        backlog_days = (today_date - df["Due Date"]).dt.days
+        backlog_days = (today_date - df["Due Date"]).days()
         backlog_days = backlog_days.astype(int)
         df.loc[(backlog_days > 28), "Backlog"] = backlog_days[backlog_days > 28]
         df.loc[(df["Backlog"] > 365), "Backlog"] = df.loc[(df["Backlog"] > 365), "Backlog"] / 365
