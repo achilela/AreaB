@@ -3,17 +3,17 @@ import pandas as pd
 import time
 
 # Set page title
-st.set_page_config(page_title="Area B - Methods Engineering")
+st.set_page_config(page_title="Area B - Methods Engineering Data Analysis")
 
 # Add a title and description
 st.markdown(
     """
     <h1 style='text-align: center; font-size: 36px; color: #2F80ED;'>
-        Area B - Methods Engineering 
+        Area B - Methods Engineering Data Analysis
     </h1>
 
     <p style='text-align: center; font-size: 18px;'>
-        Upload SAP raw data file reports for analysis and visualizations.
+        Upload the excel file raw data from SAP reports.
     </p>
     """,
     unsafe_allow_html=True
@@ -39,6 +39,20 @@ if uploaded_file is not None:
 
     # Add a new column 'Today's Date' with today's date
     df['Today\'s Date'] = pd.Timestamp.now().date()
+
+    # Format columns
+    if "Order" in df.columns:
+        df["Order"] = df["Order"].astype(int)
+    if "Last Insp/" in df.columns:
+        df["Last Insp/"] = pd.to_datetime(df["Last Insp/"]).dt.date
+    if "Next Insp/" in df.columns:
+        df["Next Insp/"] = pd.to_datetime(df["Next Insp/"]).dt.date
+    if "Due Date" in df.columns:
+        df["Due Date"] = pd.to_datetime(df["Due Date"]).dt.date
+    if "Compl Date" in df.columns:
+        df["Compl Date"] = pd.to_datetime(df["Compl Date"]).dt.date
+    if "Year" in df.columns:
+        df["Year"] = df["Year"].astype(str).str[:4]
 
     # Check if the Excel file is already in table form
     if df.columns.nlevels == 1:
