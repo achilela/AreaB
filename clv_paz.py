@@ -50,7 +50,7 @@ if uploaded_file is not None:
     if "Next Insp/" in df.columns:
         df["Next Insp/"] = pd.to_datetime(df["Next Insp/"]).dt.date
     if "Due Date" in df.columns:
-        df["Due Date"] = pd.to_datetime(df["Due Date"]).dt.date
+        df["Due Date"] = pd.to_datetime(df["Due Date"], errors='coerce').dt.date
     if "Compl Date" in df.columns:
         df["Compl Date"] = pd.to_datetime(df["Compl Date"]).dt.date
     if "Year" in df.columns:
