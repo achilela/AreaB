@@ -52,7 +52,7 @@ if uploaded_file is not None:
     # Add a new column with the header "Today's Date" and insert the TODAY() formula
     sheet.cell(row=1, column=sheet.max_column + 1, value="Today's Date")
     for row in range(2, sheet.max_row + 1):
-        sheet.cell(row=row, column=sheet.max_column, value=date.today())
+        sheet.cell(row=row, column=sheet.max_column, value=f"=TODAY()")
 
     # Convert the sheet to a table
     table_name = "MainTable"
