@@ -9,11 +9,11 @@ st.set_page_config(page_title="Area B - Methods Engineering Data Analysis")
 st.markdown(
     """
     <h1 style='text-align: center; font-size: 36px; color: #2F80ED;'>
-        Area B - Methods Engineering
+        Area B - Methods Engineering Data Analysis
     </h1>
 
     <p style='text-align: center; font-size: 18px;'>
-        Upload the raw data file from SAP reports.
+        Upload the excel file raw data from SAP reports.
     </p>
     """,
     unsafe_allow_html=True
