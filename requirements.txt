@@ -1,2 +1,2 @@
-openpyxl==3.0.10
-streamlit @ file:///croot/streamlit_1710262506170/work
+openpyxl
+streamlit
