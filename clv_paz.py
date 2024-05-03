@@ -5,19 +5,15 @@ from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from datetime import date
-import dill as pickle
-import win32com.client
 
-# Set page title
 st.set_page_config(page_title="Topsides Plant Maintenance Data Analysis")
 
-# Add a title and description
 st.markdown(
     """
     <h1 style='text-align: center; font-size: 36px; color: #2F80ED;'>
         Topsides Plant Maintenance Data Analysis
     </h1>
-
+    
     <p style='text-align: center; font-size: 18px;'>
         Upload an Excel file and use the dropdown menus to filter and analyze the data.
     </p>
@@ -25,145 +21,77 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# File upload in the sidebar
-uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx", "xls", "xlsm"])
+uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
 
-@st.cache_resource
-def load_data(uploaded_file):
-    if uploaded_file is not None:
-        # Show progress bar during file upload
-        progress_text = "Uploading file..."
-        my_bar = st.progress(0, text=progress_text)
+if uploaded_file is not None:
+    progress_text = "Uploading file..."
+    my_bar = st.progress(0, text=progress_text)
 
-        for percent_complete in range(100):
-            time.sleep(0.01)
-            my_bar.progress(percent_complete + 1, text=progress_text)
+    for percent_complete in range(100):
+        time.sleep(0.01)
+        my_bar.progress(percent_complete + 1, text=progress_text)
 
-        # Load the Excel file into a BytesIO object
-        excel_data = BytesIO(uploaded_file.getvalue())
+    excel_data = BytesIO(uploaded_file.getvalue())
+    workbook = load_workbook(excel_data)
+    sheet = workbook["Data Base"]
 
-        # Check if the file has macros
-        if uploaded_file.type == "application/vnd.ms-excel.sheet.macroEnabled.12":
-            # Open the workbook with macros using win32com
-            excel = win32com.client.Dispatch("Excel.Application")
-            workbook = excel.Workbooks.Open(excel_data)
+    sheet.delete_cols(1, 1)
+    sheet.delete_cols(sheet.max_column - 2, 3)
+    sheet.delete_rows(1, 4)
 
-            # Disable macros
-            excel.EnableEvents = False
-            excel.DisplayAlerts = False
+    sheet.cell(row=1, column=sheet.max_column + 1, value="Today's Date")
+    for row in range(2, sheet.max_row + 1):
+        sheet.cell(row=row, column=sheet.max_column, value=date.today())
 
-            # Save the workbook without macros
-            output = BytesIO()
-            workbook.SaveAs(output, FileFormat=51)  # 51 represents the .xlsx format
-            output.seek(0)
+    table_name = "MainTable"
+    table_range = f"A1:{chr(ord('A') + sheet.max_column - 1)}{sheet.max_row}"
+    table = Table(displayName=table_name, ref=table_range)
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
+    table.tableStyleInfo = style
+    sheet.add_table(table)
 
-            # Close the workbook and quit Excel
-            workbook.Close()
-            excel.Quit()
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
 
-            # Load the workbook from the BytesIO object
-            workbook = load_workbook(output)
-        else:
-            # Load the workbook directly from the BytesIO object
-            workbook = load_workbook(excel_data)
+    df = pd.read_excel(output)
 
-        # Select the "Data Base" sheet
-        sheet = workbook["Data Base"]
+    if df.columns.nlevels == 1:
+        df.dropna(how='all', inplace=True)
+        df.dropna(axis=1, how='all', inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
-        # Delete the first column (A) and the last three columns (S, T, U)
-        sheet.delete_cols(1, 1)
-        sheet.delete_cols(sheet.max_column - 2, 3)
+        if "SECE STATUS" in df.columns:
+            df["SECE STATUS"].fillna("Non-SCE", inplace=True)
 
-        # Delete the first 4 rows
-        sheet.delete_rows(1, 4)
+        st.write("Cleaned Table:")
+        st.write(df.head(10))
 
-        # Add a new column with the header "Today's Date" and insert the TODAY() formula
-        sheet.cell(row=1, column=sheet.max_column + 1, value="Today's Date")
-        for row in range(2, sheet.max_row + 1):
-            sheet.cell(row=row, column=sheet.max_column, value=f"=TODAY()")
+        column_options = df.columns.tolist()
+        main_column = st.radio("Select the main column", column_options)
 
-        # Convert the sheet to a table
-        table_name = "MainTable"
-        table_range = f"A1:{chr(ord('A') + sheet.max_column - 1)}{sheet.max_row}"
-        table = Table(displayName=table_name, ref=table_range)
-        style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=True)
-        table.tableStyleInfo = style
-        sheet.add_table(table)
+        filter_columns = [col for col in column_options if col != main_column]
+        selected_columns = st.multiselect("Select columns to filter", filter_columns)
 
-        # Save the modified workbook to a BytesIO object
-        output = BytesIO()
-        workbook.save(output)
-        output.seek(0)
+        if selected_columns:
+            filtered_df = df[[main_column] + selected_columns]
 
-        # Read the modified Excel file into a pandas DataFrame
-        df = pd.read_excel(output)
+            filter_values = {}
+            for column in selected_columns:
+                unique_values = filtered_df[column].unique()
+                filter_values[column] = st.multiselect(f"Select values to filter '{column}'", unique_values)
 
-        # Check if the Excel file is already in table form
-        if df.columns.nlevels == 1:
-            # Remove rows with missing data
-            df.dropna(how='all', inplace=True)
+            for column, values in filter_values.items():
+                if values:
+                    filtered_df = filtered_df[filtered_df[column].isin(values)]
 
-            # Remove columns with missing data
-            df.dropna(axis=1, how='all', inplace=True)
+            grouped_data = filtered_df.groupby([main_column] + selected_columns).size().reset_index(name='Count')
+            pivot_table = grouped_data.pivot_table(index=main_column, columns=selected_columns, values='Count', fill_value=0)
+            pivot_table["Grand Total"] = pivot_table.sum(axis=1)
+            pivot_table.loc["Total"] = pivot_table.sum()
 
-            # Reset index
-            df.reset_index(drop=True, inplace=True)
-
-            # Replace NaN values in the "SECE STATUS" column with "Non-SCE"
-            if "SECE STATUS" in df.columns:
-                df["SECE STATUS"].fillna("Non-SCE", inplace=True)
-
-        return df
-
-df = load_data(uploaded_file)
-
-if df is not None:
-    # Display the first 10 rows of the cleaned table
-    st.write("Cleaned Table:")
-    st.write(df.head(10))
-
-    # Get unique values for dropdown menus
-    column_options = df.columns.tolist()
-
-    # Create radio button to select the main column
-    main_column = st.radio("Select the main column", column_options)
-
-    # Create multiselect dropdowns for filtering other columns
-    filter_columns = [col for col in column_options if col != main_column]
-    selected_columns = st.multiselect("Select columns to filter", filter_columns)
-
-    if selected_columns:
-        # Filter the DataFrame based on selected columns
-        filtered_df = df[df[main_column].isin(values)]
-
-        # Create a dictionary to store the filter values for each selected column
-        filter_values = {}
-
-        # Create multiselect dropdowns for filtering each selected column
-        for column in selected_columns:
-            unique_values = filtered_df[column].unique()
-            filter_values[column] = st.multiselect(f"Select values to filter '{column}'", unique_values)
-
-        # Filter the DataFrame based on the filter values
-        for column, values in filter_values.items():
-            if values:
-                filtered_df = filtered_df[filtered_df[column].isin(values)]
-
-        # Group the data by the main column and selected columns
-        grouped_data = filtered_df.groupby([main_column] + selected_columns).size().reset_index(name='Count')
-
-        # Pivot the grouped data to create a table with the main column as rows and selected columns as columns
-        pivot_table = grouped_data.pivot_table(index=main_column, columns=selected_columns, values='Count', fill_value=0)
-
-        # Add a "Grand Total" column to the pivot table
-        pivot_table["Grand Total"] = pivot_table.sum(axis=1)
-
-        # Add a "Total" row to the pivot table
-        pivot_table.loc["Total"] = pivot_table.sum()
-
-        # Display the pivot table
-        st.write("Filtered Table:")
-        st.write(pivot_table)
+            st.write("Filtered Table:")
+            st.write(pivot_table)
 
     else:
         st.write("The uploaded Excel file is not in table form.")
