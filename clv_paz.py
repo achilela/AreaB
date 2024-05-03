@@ -55,8 +55,8 @@ if uploaded_file is not None:
 
     # Convert the sheet to a table
     table_name = "MainTable"
-    table_range = f"{sheet.min_column}{sheet.min_row}:{sheet.max_column}{sheet.max_row}"
-    sheet.tables.add(table_name, sheet[table_range])
+    table_range = sheet.dimensions
+    sheet.tables.add(table_name, sheet.dimensions)
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
