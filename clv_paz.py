@@ -67,11 +67,13 @@ if uploaded_file is not None:
     # Calculate backlog
     if "Backlog" not in df.columns:
         df["Backlog"] = np.nan
-    if "Due Date" in df.columns:
-        backlog_days = (today_date - df["Due Date"]).dt.days
+    if "Due Date" in df.columns and "Order Status" in df.columns:
+        backlog_days = (df["Due Date"] + pd.Timedelta(days=28)) - today_date
+        backlog_days = backlog_days.dt.days
         backlog_days = backlog_days.astype(int)
-        df.loc[(backlog_days > 28), "Backlog"] = "Yes"
-        df.loc[(backlog_days <= 28), "Backlog"] = "No"
+        order_status = df["Order Status"]
+        df.loc[(order_status.isin(["WIP", "HOLD", "WREL"])) & (backlog_days < 0), "Backlog"] = "Yes"
+        df.loc[~((order_status.isin(["WIP", "HOLD", "WREL"])) & (backlog_days < 0)), "Backlog"] = "No"
 
     # Check if the Excel file is already in table form
     if df.columns.nlevels == 1:
