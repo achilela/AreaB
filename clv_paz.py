@@ -11,9 +11,6 @@ def preprocess_data(df):
     # Add a "Today Date" column with the TODAY() formula
     df['Today Date'] = date.today()
     
-    # Format the "Order" column to be numeric without commas or decimals
-    df['Order'] = pd.to_numeric(df['Order'].str.replace(',', '').str.replace('.', ''), errors='coerce').fillna(0).astype(int)
-    
     return df
 
 def filter_data(df, selected_columns, filter_values):
@@ -30,7 +27,7 @@ def display_filtered_data(filtered_df):
     st.write(filtered_df)
     
     # Display the filtered data in a professional table format
-    st.write(filtered_df.style.format({"Order": "{:.0f}", "Today Date": lambda x: f'=TODAY()'}))
+    st.write(filtered_df.style.format({"Today Date": lambda x: f'=TODAY()'}))
     
     # Use pygwalker for data visualization
     fig = pyg.plot(filtered_df)
