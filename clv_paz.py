@@ -72,7 +72,7 @@ if uploaded_file is not None:
         # Convert "Due Date" to datetime dtype if it's not already
         df["Due Date"] = pd.to_datetime(df["Due Date"],  errors="coerce")
 
-        backlog_days = (df["Due Date"] + timedelta(days=28)) 
+        backlog_days = (df["Due Date"] + timedelta(days=28)) - today_date
         backlog_days = backlog_days.dt.days
         #backlog_days = backlog_days.astype(int)
         backlog_days = backlog_days.fillna(0).astype(int)
