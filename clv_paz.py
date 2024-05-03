@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import time
 import numpy as np
+from datetime import datetime, timedelta
 
 # Set page title
 st.set_page_config(page_title="Area B - Methods Engineering Data Analysis")
@@ -68,9 +69,13 @@ if uploaded_file is not None:
     if "Backlog" not in df.columns:
         df["Backlog"] = np.nan
     if "Due Date" in df.columns and "Order Status" in df.columns:
-        backlog_days = (df["Due Date"] + pd.Timedelta(days=28)) - today_date
+        # Convert "Due Date" to datetime dtype if it's not already
+        df["Due Date"] = pd.to_datetime(df["Due Date"])
+
+        backlog_days = (df["Due Date"] + timedelta(days=28)) - today_date
         backlog_days = backlog_days.dt.days
         backlog_days = backlog_days.astype(int)
+        
         order_status = df["Order Status"]
         df.loc[(order_status.isin(["WIP", "HOLD", "WREL"])) & (backlog_days < 0), "Backlog"] = "Yes"
         df.loc[~((order_status.isin(["WIP", "HOLD", "WREL"])) & (backlog_days < 0)), "Backlog"] = "No"
