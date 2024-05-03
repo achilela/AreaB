@@ -2,3 +2,4 @@ Openpyxl
 streamlit
 pygwalker
 xlrd
+dill
