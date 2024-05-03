@@ -3,17 +3,17 @@ import pandas as pd
 import time
 
 # Set page title
-st.set_page_config(page_title="Topsides Plant Maintenance Data Analysis")
+st.set_page_config(page_title="Area B - Methods Engineering Data Analysis")
 
 # Add a title and description
 st.markdown(
     """
     <h1 style='text-align: center; font-size: 36px; color: #2F80ED;'>
-        Topsides Plant Maintenance Data Analysis
+        Area B - Methods Engineering Data Analysis
     </h1>
     
     <p style='text-align: center; font-size: 18px;'>
-        Upload an Excel file and use the dropdown menus to filter and analyze the data.
+        Upload the excel file raw data from SAP reports.
     </p>
     """,
     unsafe_allow_html=True
@@ -50,7 +50,7 @@ if uploaded_file is not None:
             df["SECE STATUS"].fillna("Non-SCE", inplace=True)
 
         # Display the first 10 rows of the cleaned table
-        st.write("Cleaned Table:")
+        st.write("Completed Pre-Processed Table")
         st.write(df.head(10))
 
         # Get unique values for dropdown menus
