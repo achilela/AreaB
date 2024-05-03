@@ -56,45 +56,37 @@ if uploaded_file is not None:
         # Get unique values for dropdown menus
         column_options = df.columns.tolist()
 
-        # Create radio button to select the main column
-        main_column = st.radio("Select the main column", column_options)
-
-        # Create multiselect dropdowns for filtering other columns
-        filter_columns = [col for col in column_options if col != main_column]
-        selected_columns = st.multiselect("Select columns to filter", filter_columns)
+        # Create dropdown menus
+        selected_columns = st.multiselect("Select Columns", column_options)
 
         if selected_columns:
             # Filter the DataFrame based on selected columns
-            filtered_df = df[[main_column] + selected_columns]
+            selected_columns_df = df[selected_columns]
+
+            # Display the selected columns DataFrame
+            st.write(selected_columns_df)
 
             # Create a dictionary to store the filter values for each selected column
             filter_values = {}
 
             # Create multiselect dropdowns for filtering each selected column
             for column in selected_columns:
-                unique_values = filtered_df[column].unique()
+                unique_values = selected_columns_df[column].unique()
                 filter_values[column] = st.multiselect(f"Select values to filter '{column}'", unique_values)
 
             # Filter the DataFrame based on the filter values
+            filtered_df = selected_columns_df.copy()
             for column, values in filter_values.items():
                 if values:
                     filtered_df = filtered_df[filtered_df[column].isin(values)]
 
-            # Group the data by the main column and selected columns
-            grouped_data = filtered_df.groupby([main_column] + selected_columns).size().reset_index(name='Count')
-
-            # Pivot the grouped data to create a table with the main column as rows and selected columns as columns
-            pivot_table = grouped_data.pivot_table(index=main_column, columns=selected_columns, values='Count', fill_value=0)
-
-            # Add a "Grand Total" column to the pivot table
-            pivot_table["Grand Total"] = pivot_table.sum(axis=1)
-
-            # Add a "Total" row to the pivot table
-            pivot_table.loc["Total"] = pivot_table.sum()
-
-            # Display the pivot table
+            # Display the filtered DataFrame as a comprehensive table
             st.write("Filtered Table:")
-            st.write(pivot_table)
+            filtered_table = filtered_df.pivot_table(index=selected_columns[0], columns=selected_columns[1:], aggfunc='size', fill_value=0)
+            filtered_table["Grand Total"] = filtered_table.sum(axis=1)
+            filtered_table.loc["Total"] = filtered_table.sum()
+            filtered_table.loc["Grand Total"] = filtered_table.sum(axis=1)
+            st.write(filtered_table)
 
     else:
         st.write("The uploaded Excel file is not in table form.")
