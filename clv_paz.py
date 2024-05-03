@@ -68,7 +68,7 @@ if uploaded_file is not None:
         st.write(df.head(10))
 
         column_options = df.columns.tolist()
-        main_column = st.radio("Select the main column", column_options)
+        main_column = st.selectbox("Select the main column", column_options)
 
         filter_columns = [col for col in column_options if col != main_column]
         selected_columns = st.multiselect("Select columns to filter", filter_columns)
@@ -85,6 +85,13 @@ if uploaded_file is not None:
                 if values:
                     filtered_df = filtered_df[filtered_df[column].isin(values)]
 
+            if "SECE STATUS" in selected_columns:
+                sce_status = st.selectbox("Filter SECE STATUS", ["All", "SCE", "Non-SCE"])
+                if sce_status == "SCE":
+                    filtered_df = filtered_df[filtered_df["SECE STATUS"] == "SCE"]
+                elif sce_status == "Non-SCE":
+                    filtered_df = filtered_df[filtered_df["SECE STATUS"] == "Non-SCE"]
+
             grouped_data = filtered_df.groupby([main_column] + selected_columns).size().reset_index(name='Count')
             pivot_table = grouped_data.pivot_table(index=main_column, columns=selected_columns, values='Count', fill_value=0)
             pivot_table["Grand Total"] = pivot_table.sum(axis=1)
@@ -92,6 +99,20 @@ if uploaded_file is not None:
 
             st.write("Filtered Table:")
             st.write(pivot_table)
+
+            # Display summary statistics for numeric columns
+            numeric_columns = pivot_table.select_dtypes(include=['number']).columns
+            if len(numeric_columns) > 0:
+                st.write("Summary Statistics for Numeric Columns:")
+                st.write(pivot_table[numeric_columns].describe())
+
+            # Display unique values and counts for categorical columns
+            categorical_columns = pivot_table.select_dtypes(include=['object']).columns
+            if len(categorical_columns) > 0:
+                st.write("Unique Values and Counts for Categorical Columns:")
+                for column in categorical_columns:
+                    st.write(f"{column}:")
+                    st.write(pivot_table[column].value_counts())
 
     else:
         st.write("The uploaded Excel file is not in table form.")
