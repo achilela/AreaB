@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import time
+import numpy as np
 
 # Set page title
 st.set_page_config(page_title="Area B - Methods Engineering Data Analysis")
@@ -18,8 +19,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# =IF($V$1-L2>1095,"> 3 Yrs",IF($V$1-L2>730,"2 Yrs < x <3 Yrs",IF($V$1-L2>365,"1 Yrs < x <2 Yrs",IF($V$1-L2>182,"6 Months < x <1 Yrs","< 6 Months"))))
 
 # Add a sidebar
 sidebar = st.sidebar
@@ -40,7 +39,8 @@ if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
 
     # Add a new column 'Today's Date' with today's date
-    df['Today\'s Date'] = pd.Timestamp.now().date()
+    today_date = pd.Timestamp.now().date()
+    df['Today\'s Date'] = today_date
 
     # Format columns
     if "Order" in df.columns:
@@ -55,6 +55,14 @@ if uploaded_file is not None:
         df["Compl Date"] = pd.to_datetime(df["Compl Date"]).dt.date
     if "Year" in df.columns:
         df["Year"] = df["Year"].astype(str).str[:4]
+
+    # Calculate delay
+    if "Delay" in df.columns and "Due Date" in df.columns:
+        df["Delay"] = np.where(today_date - df["Due Date"] > pd.Timedelta(days=1095), "> 3 Yrs",
+                               np.where(today_date - df["Due Date"] > pd.Timedelta(days=730), "2 Yrs < x <3 Yrs",
+                                      np.where(today_date - df["Due Date"] > pd.Timedelta(days=365), "1 Yrs < x <2 Yrs",
+                                               np.where(today_date - df["Due Date"] > pd.Timedelta(days=182), "6 Months < x <1 Yrs",
+                                                        "< 6 Months"))))
 
     # Check if the Excel file is already in table form
     if df.columns.nlevels == 1:
