@@ -24,6 +24,39 @@ st.markdown(
 # Add a sidebar
 sidebar = st.sidebar
 
+# Add a logo and description to the sidebar
+logo_path_computer = "/home/atalibamiguel/dataCamp PythonExcel/CLOV.png"
+logo_path_github = "https://raw.githubusercontent.com/your-username/your-repo/main/logo.png"
+
+sidebar.markdown(
+    """
+    <style>
+    .logo-description {
+        style='text-align: center; 
+        color: #2F80ED;
+        font-size: 20px;
+       
+        margin-top: 10px;
+        font-family: Arial, sans-serif;
+        line-height: 1.5;
+    }
+    </style>
+  
+
+    <div class="logo-description">
+        Area B - CLOV & PAZFLOR
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+try:
+    sidebar.image(logo_path_computer, width=250)
+except FileNotFoundError:
+    sidebar.image(logo_path_github, width=150)
+
+
+
 # File upload in the sidebar
 uploaded_file = sidebar.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
 
@@ -41,45 +74,57 @@ if uploaded_file is not None:
 
     # Add a new column 'Today's Date' with today's date
     today_date = pd.Timestamp.now().date()
-    df['Today\'s Date'] = today_date
+    df['Today\'s Date'] = today_date.strftime('%m/%d/%Y')
 
     # Format columns
     if "Order" in df.columns:
         df["Order"] = df["Order"].astype(int)
     if "Last Insp/" in df.columns:
-        df["Last Insp/"] = pd.to_datetime(df["Last Insp/"]).dt.date
+        df["Last Insp/"] = pd.to_datetime(df["Last Insp/"]).dt.strftime('%m/%d/%Y')
     if "Next Insp/" in df.columns:
-        df["Next Insp/"] = pd.to_datetime(df["Next Insp/"]).dt.date
+        df["Next Insp/"] = pd.to_datetime(df["Next Insp/"]).dt.strftime('%m/%d/%Y')
     if "Due Date" in df.columns:
-        df["Due Date"] = pd.to_datetime(df["Due Date"], errors='coerce').dt.date
+        df["Due Date"] = pd.to_datetime(df["Due Date"], errors='coerce').dt.strftime('%m/%d/%Y')
     if "Compl Date" in df.columns:
-        df["Compl Date"] = pd.to_datetime(df["Compl Date"]).dt.date
+        df["Compl Date"] = pd.to_datetime(df["Compl Date"]).dt.strftime('%m/%d/%Y')
     if "Year" in df.columns:
         df["Year"] = df["Year"].astype(str).str[:4]
 
     # Calculate delay
     if "Delay" in df.columns and "Due Date" in df.columns:
-        df["Delay"] = np.where(today_date - df["Due Date"] > pd.Timedelta(days=1095), "> 3 Yrs",
-                               np.where(today_date - df["Due Date"] > pd.Timedelta(days=730), "2 Yrs < x <3 Yrs",
-                                      np.where(today_date - df["Due Date"] > pd.Timedelta(days=365), "1 Yrs < x <2 Yrs",
-                                               np.where(today_date - df["Due Date"] > pd.Timedelta(days=182), "6 Months < x <1 Yrs",
+        df["Due Date"] = pd.to_datetime(df["Due Date"], errors='coerce')
+        df["Delay"] = np.where(today_date - df["Due Date"].dt.date > pd.Timedelta(days=1095), "> 3 Yrs",
+                               np.where(today_date - df["Due Date"].dt.date > pd.Timedelta(days=730), "2 Yrs < x <3 Yrs",
+                                      np.where(today_date - df["Due Date"].dt.date > pd.Timedelta(days=365), "1 Yrs < x <2 Yrs",
+                                               np.where(today_date - df["Due Date"].dt.date > pd.Timedelta(days=182), "6 Months < x <1 Yrs",
                                                         "< 6 Months"))))
 
     # Calculate backlog
     if "Backlog" not in df.columns:
         df["Backlog"] = np.nan
-    if "Due Date" in df.columns and "Order Status" in df.columns:
-        # Convert "Due Date" to datetime dtype if it's not already
-        df["Due Date"] = pd.to_datetime(df["Due Date"],  errors="coerce")
+        df["Backlog Date"] = pd.NaT
+        df["Backlog Days"] = np.nan
 
-        backlog_days = (df["Due Date"] + timedelta(days=28)) - today_date
-        backlog_days = backlog_days.dt.days
-        #backlog_days = backlog_days.astype(int)
-        backlog_days = backlog_days.fillna(0).astype(int)
-        
-        order_status = df["Order Status"]
-        df.loc[(order_status.isin(["WIP", "HOLD", "WREL"])) & (backlog_days < 0), "Backlog"] = "Yes"
-        df.loc[~((order_status.isin(["WIP", "HOLD", "WREL"])) & (backlog_days > 0)), "Backlog"] = "No"
+    if "Due Date" in df.columns and "Order Status" in df.columns:
+        # Convert "Due Date" to datetime dtype, handling invalid values
+        df["Due Date"] = pd.to_datetime(df["Due Date"], errors="coerce")
+        today_date = pd.Timestamp(today_date)
+
+        # Calculate the sum of "Due Date" and 28 days
+        due_date_plus_28 = df["Due Date"] + pd.Timedelta(days=28)
+
+        # Compare the sum with today's date
+        is_backlog = due_date_plus_28.dt.date == today_date
+
+        # Assign "Yes" or "No" to the "Backlog" column based on the condition
+        df["Backlog"] = np.where((df["Order Status"].isin(["WIP", "HOLD", "WREL"])) & is_backlog, "Yes", "No")
+
+        # Assign the backlog date when the equipment enters into backlog
+        df.loc[(df["Order Status"].isin(["WIP", "HOLD", "WREL"])) & is_backlog, "Backlog Date"] = due_date_plus_28.dt.strftime('%m/%d/%Y')
+
+        # Calculate the cumulative days the equipment has been in backlog
+        df["Backlog Days"] = (today_date - pd.to_datetime(df["Backlog Date"], errors="coerce")).dt.days
+        df["Backlog Days"] = df["Backlog Days"].fillna(0).astype(int)
 
     # Check if the Excel file is already in table form
     if df.columns.nlevels == 1:
@@ -98,28 +143,25 @@ if uploaded_file is not None:
 
         # Display the first 10 rows of the cleaned table
         st.write("Completed Pre-Processed Table")
-        st.write(df.head(10))
+        st.write(df.head(5))
 
         # Get unique values for dropdown menus
         column_options = df.columns.tolist()
 
-        # Create dropdown menus
-        selected_columns = st.multiselect("Select Columns", column_options)
+        # Create dropdown menu in the sidebar
+        selected_columns = sidebar.multiselect("Select Columns", column_options)
 
         if selected_columns:
             # Filter the DataFrame based on selected columns
             selected_columns_df = df[selected_columns]
 
-            # Display the selected columns DataFrame
-            st.write(selected_columns_df)
-
             # Create a dictionary to store the filter values for each selected column
             filter_values = {}
 
-            # Create multiselect dropdowns for filtering each selected column
+            # Create multiselect dropdowns for filtering each selected column in the sidebar
             for column in selected_columns:
                 unique_values = selected_columns_df[column].unique()
-                filter_values[column] = st.multiselect(f"Select values to filter '{column}'", unique_values)
+                filter_values[column] = sidebar.multiselect(f"Select values to filter '{column}'", unique_values)
 
             # Filter the DataFrame based on the filter values
             filtered_df = selected_columns_df.copy()
@@ -130,10 +172,31 @@ if uploaded_file is not None:
             # Display the filtered DataFrame as a comprehensive table
             st.write("Filtered Table:")
             filtered_table = filtered_df.pivot_table(index=selected_columns[0], columns=selected_columns[1:], aggfunc='size', fill_value=0)
+
+            # Convert filtered_table to a DataFrame
+            filtered_table = pd.DataFrame(filtered_table)
+
             filtered_table["Grand Total"] = filtered_table.sum(axis=1)
-            filtered_table.loc["Total"] = filtered_table.sum()
+
+            # Calculate the total for each column
+            column_totals = filtered_table.sum()
+
+            # Add the total row to the DataFrame
+            filtered_table.loc["Total"] = column_totals
+
             filtered_table.loc["Grand Total"] = filtered_table.sum(axis=1)
-            st.write(filtered_table)
+
+            # Style the filtered table
+            styled_table = filtered_table.style.format('{:,.0f}') \
+                .set_properties(**{'text-align': 'center'}) \
+                .set_table_styles([
+                    {'selector': 'th', 'props': [('background-color', '#2F80ED'), ('color', 'white')]},
+                    {'selector': 'td', 'props': [('border', '1px solid #ddd')]},
+                    {'selector': 'tr:nth-child(even)', 'props': [('background-color', '#f2f2f2')]},
+                    {'selector': 'tr:hover', 'props': [('background-color', '#e6e6e6')]}
+                ])
+
+            st.write(styled_table)
 
     else:
         st.write("The uploaded Excel file is not in table form.")
