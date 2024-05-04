@@ -199,5 +199,7 @@ if uploaded_file is not None:
 
             st.write(styled_table)
 
+    #=IF(AND(OR([@[Order Status]]="WIP",[@[Order Status]]="HOLD",[@[Order Status]]="WREL"),[@[Due Date]]+28=TODAY()),"Yes","No")
+
     else:
         st.write("The uploaded Excel file is not in table form.")
