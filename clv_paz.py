@@ -51,9 +51,10 @@ sidebar.markdown(
 )
 
 try:
-    sidebar.image(logo_path_computer, width=250)
+    sidebar.image(logo_path_github, width=250)
 except FileNotFoundError:
-    sidebar.image(logo_path_github, width=150)
+    
+     sidebar.image(logo_path_computer, width=250)
 
 
 
