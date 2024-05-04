@@ -14,7 +14,7 @@ st.markdown(
         Area B - Methods Engineering
     </h1>
 
-    <p style='text-align: Left; font-size: 18px;'>
+    <p style='text-align: Center; font-size: 18px;'>
         Upload the excel file raw data from SAP reports.
     </p>
     """,
