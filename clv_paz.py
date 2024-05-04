@@ -26,7 +26,7 @@ sidebar = st.sidebar
 
 # Add a logo and description to the sidebar
 logo_path_computer = "/home/atalibamiguel/dataCamp PythonExcel/CLOV.png"
-logo_path_github = "https://raw.githubusercontent.com/your-username/your-repo/main/logo.png"
+logo_path_github = "https://raw.githubusercontent.com/achilela/AreaB/main/CLOV.png"
 
 sidebar.markdown(
     """
