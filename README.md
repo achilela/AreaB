@@ -5,7 +5,7 @@ The Methods Engineering App is designed to analyze and filter Inspection Plant M
 ## Features
 
 - File Upload: Users can upload an Excel file containing topsides plant maintenance data.
-- Data Cleansing: The App performs data cleansing tasks, such as removing rows and columns with missing data and replacing NaN values in the "SECE STATUS" column with "Non-SCE".
+- Data Cleansing: The App performs data cleansing tasks.
 - Column Selection: Users can select specific columns from the uploaded Excel file for analysis.
 - Data Filtering: Users can apply filters to the selected columns using dropdown menus to narrow down the data based on specific values.
 - Summary Statistics: The webapp displays summary descriptive statistics for the filtered data in a condensed table format.
@@ -46,7 +46,6 @@ The Methods Engineering App is designed to analyze and filter Inspection Plant M
 ## Limitations
 
 - The webapp assumes that the uploaded Excel file is in a table format with column headers.
-- The data cleansing steps are specific to the "SECE STATUS" column and may need to be adapted for different datasets.
 - The webapp may not handle large datasets efficiently and may require optimization for better performance.
 
 ## Future Work
